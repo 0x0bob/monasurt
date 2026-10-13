@@ -22,6 +22,26 @@
 > **The site says “Claim rewards”. The wallet request says “let 0x…dEaD spend all your WMON, forever.”**
 > Mona Guard reads the request itself instead of the page, and stops the user before they sign.
 
+## For reviewers: 3-minute evaluation
+
+| Step | What to do | What you should see |
+|---|---|---|
+| 1 | `swift test` | `Executed 83 tests, with 0 failures` |
+| 2 | `swift run nebuladrop-check` | The fake “Claim Rewards” request rated **High risk**, with the red **“STOP. THIS IS NOT A REWARD CLAIM.”** content, while a 5 WMON approval and a revoke are not |
+| 3 | Read [`DeterministicRiskEngine.swift`](Sources/MonaGuard/Risk/DeterministicRiskEngine.swift) and [`SecurityInterruption.swift`](Sources/MonaGuard/Risk/SecurityInterruption.swift) | Plain rules on decoded calldata. No AI, no network and no page content in the verdict |
+| 4 | Open the on-chain evidence below | Real transactions signed by the MonaSurf app on Monad Testnet after its review |
+
+**On-chain evidence from the full app (Monad Testnet, chain 10143):**
+
+| Transaction | What it shows | Explorer |
+|---|---|---|
+| PuddleSwap swap, 1 MON → USDT | A real third-party dApp going through the same review and signing flow | [0x613c7c92…](https://testnet.monadscan.com/tx/0x613c7c92131059307bee0bc3bc13ae0d66524d3d141831443a45e2b54b0cd26a) |
+| Bounded approval, 5 WMON | A limited approval, which the engine distinguishes from an unlimited one | [0xdc2945bf…](https://testnet.monadscan.com/tx/0xdc2945bf1958f53b7aedb055f4a836c198c34632c92fe2df7a9a2d785fd8909b) |
+| Unlimited approval (explicit override test) | A HIGH request can only go through after an explicit acknowledgement, confirmation and Face ID | [0x3fe74e64…](https://testnet.monadscan.com/tx/0x3fe74e647725c3be0cd7c67a664eb34a9922d2498924736a3ee56180352d15d9) |
+| Native self-transfer | The basic signing path on testnet | [0x563cd829…](https://testnet.monadscan.com/tx/0x563cd829596173caa1d83f937cd1469d4cebd53b0a2154c447b839f12d54f072) |
+
+The video in the hackathon submission shows the full app on a physical iPhone, including the NebulaDrop interruption.
+
 ## What this repository is
 
 [MonaSurf](#about-monasurf) is a native iOS Web3 browser with a built-in wallet, running on **Monad Testnet (chain 10143)**. Every wallet request a website makes goes through **Mona Guard** before the user can sign it.
