@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NebulaDrop · Claim your rewards</title>
+<style>
+  :root {
+    --bg: #07040f; --bg2: #140a2b; --card: rgba(255,255,255,.055); --line: rgba(255,255,255,.10);
+    --text: #f4f0ff; --muted: #a99cc9; --neb: #c084fc; --neb2: #f472b6; --gold: #fcd34d;
+    --ok: #34d399; --bad: #fb7185;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; color: var(--text);
+    font: 16px/1.45 -apple-system, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(244,114,182,.28), transparent 60%),
+      radial-gradient(700px 600px at -10% 20%, rgba(124,58,237,.35), transparent 60%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 70%);
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 14px 18px 40px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.02em; font-size: 20px; }
+  .btn-ghost {
+    border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--text);
+    padding: 9px 14px; border-radius: 999px; font: 600 14px/1 inherit; font-family: inherit;
+  }
+  .tag { display: inline-flex; gap: 6px; align-items: center; margin-top: 14px; font-size: 12px; color: var(--muted);
+         border: 1px dashed rgba(255,255,255,.18); border-radius: 999px; padding: 5px 10px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); display: inline-block; }
+  h1 { font-size: 40px; line-height: 1.05; letter-spacing: -.035em; margin: 26px 0 10px; font-weight: 850;
+       background: linear-gradient(90deg, #fff, #e9d5ff 40%, var(--neb2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); margin: 0 0 22px; }
+  .reward {
+    position: relative; overflow: hidden; border-radius: 26px; padding: 22px;
+    background: linear-gradient(140deg, rgba(192,132,252,.22), rgba(244,114,182,.12) 60%, rgba(255,255,255,.04));
+    border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 80px -30px rgba(192,132,252,.55);
+  }
+  .reward small { color: var(--muted); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }
+  .amount { font-size: 54px; font-weight: 850; letter-spacing: -.04em; margin: 4px 0 2px; }
+  .amount span { font-size: 22px; color: var(--gold); margin-left: 6px; letter-spacing: 0; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 18px; }
+  .chip { font-size: 12px; padding: 5px 10px; border-radius: 999px; background: rgba(0,0,0,.25); border: 1px solid var(--line); color: #e9d5ff; }
+  .claim {
+    width: 100%; border: 0; border-radius: 18px; padding: 17px; font: 800 18px/1 inherit; font-family: inherit; color: #1a0b2e;
+    background: linear-gradient(90deg, #fde68a, #f9a8d4 55%, #c4b5fd); box-shadow: 0 12px 30px -10px rgba(249,168,212,.7);
+  }
+  .claim:disabled { opacity: .5; }
+  .fine { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 0; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px; text-align: center; }
+  .stat b { display: block; font-size: 17px; }
+  .stat span { font-size: 11px; color: var(--muted); }
+
+  .result { display: none; margin-top: 22px; border-radius: 22px; padding: 18px; background: #0d1326; border: 1px solid rgba(125,220,255,.35); }
+  .result.show { display: block; }
+  .result h2 { margin: 0 0 4px; font-size: 20px; color: #7ddcff; letter-spacing: -.01em; }
+  .warn { margin: 12px 0; padding: 12px 14px; border-radius: 14px; background: rgba(251,113,133,.12); border: 1px solid rgba(251,113,133,.45); color: #fecdd3; font-weight: 600; font-size: 14px; }
+  .note { font-size: 12px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { color: var(--muted); width: 46%; padding-right: 10px; }
+  .good { color: var(--ok); font-weight: 700; } .bad { color: var(--bad); font-weight: 700; }
+
+  .controls { margin-top: 30px; border-radius: 22px; padding: 16px; background: rgba(0,0,0,.35); border: 1px solid var(--line); }
+  .controls h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .grid button { border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--text); border-radius: 12px; padding: 11px 8px; font: 600 13px/1.2 inherit; font-family: inherit; }
+  .grid button:disabled { opacity: .45; }
+  pre { white-space: pre-wrap; word-break: break-all; font: 12px/1.5 ui-monospace, Menlo, monospace; color: #d8ccff; background: rgba(255,255,255,.04); border-radius: 12px; padding: 10px; margin: 10px 0 0; max-height: 260px; overflow: auto; }
+  footer { margin-top: 22px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <radialGradient id="pl" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f5d0fe"/><stop offset=".45" stop-color="#c084fc"/><stop offset="1" stop-color="#6d28d9"/></radialGradient>
+          <linearGradient id="or" x1="0" x2="1"><stop offset="0" stop-color="#f472b6"/><stop offset="1" stop-color="#fde68a"/></linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="15" fill="url(#pl)"/>
+        <path d="M6 38 C 10 48, 40 50, 56 36" fill="none" stroke="url(#or)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M58 27 C 56 20, 42 16, 30 18" fill="none" stroke="url(#or)" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+        <circle cx="57" cy="31" r="2.6" fill="#fde68a"/>
+      </svg>
+      NebulaDrop
+    </div>
+    <button class="btn-ghost" id="connect">Connect wallet</button>
+  </header>
+
+  <div class="tag"><span class="dot"></span> Fictional security demo · Monad Testnet · <span id="chain">…</span></div>
+
+  <h1>Your rewards are waiting</h1>
+  <p class="sub">Season 1 of the NebulaDrop airdrop is live. Eligible wallets can claim their allocation now.</p>
+
+  <section class="reward">
+    <small>Your allocation</small>
+    <div class="amount">5,000<span>NEB</span></div>
+    <div class="meta"><span class="chip">✦ Early supporter</span><span class="chip">⏳ Claim window open</span><span class="chip">Gas only</span></div>
+    <button class="claim" id="claim">Claim Rewards</button>
+    <div class="fine">NEB is fictional. No NEB token exists. This page is bundled with MonaSurf to demonstrate a misleading request.</div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b>48,210</b><span>wallets claimed</span></div>
+    <div class="stat"><b>240M</b><span>NEB distributed</span></div>
+    <div class="stat"><b>2 days</b><span>left to claim</span></div>
+  </div>
+  <p class="note" style="text-align:center;margin-top:8px">The numbers above are invented page decoration, as a real lure site would show.</p>
+
+  <section class="result" id="result" aria-live="polite">
+    <h2 id="resultTitle">Protected by Mona Guard</h2>
+    <div class="warn" id="warn">This site promised a reward, but the wallet request grants unlimited token spending permission.</div>
+    <table>
+      <tr><td>Claimed action</td><td>Claim fictional NEB rewards</td></tr>
+      <tr><td>Actual requested action</td><td id="rAction">–</td></tr>
+      <tr><td>Mona Guard rating for this request type</td><td id="rRisk">–</td></tr>
+      <tr><td>User decision (from the wallet's reply)</td><td id="rDecision">–</td></tr>
+      <tr><td>Transaction broadcast</td><td id="rBroadcast">–</td></tr>
+    </table>
+    <p class="note" style="margin-top:10px">This shows that the reward claim and the wallet request don't match. It doesn't prove the spender is malicious: the demo spender is the inert burn address 0x…dEaD.</p>
+  </section>
+
+  <section class="controls">
+    <h3>Demo controls</h3>
+    <div class="note">Separate from the lure above. Every button sends a real EIP-1193 request to MonaSurf's wallet, which reviews it. Nothing is signed without your confirmation and Face ID.</div>
+    <div class="grid">
+      <button id="cConnect">Connect Wallet</button>
+      <button id="cClaim">Claim Rewards (unlimited approval)</button>
+      <button id="cLimited">Limited Approval (5 WMON)</button>
+      <button id="cInspect">Inspect My Wallet</button>
+      <button id="cRevoke">Revoke WMON approval (set to 0)</button>
+      <button id="cReset">Reset Demo (page only)</button>
+    </div>
+    <pre id="log">Not connected.</pre>
+  </section>
+
+  <footer>NebulaDrop is fictional and not a real project. Never type a recovery phrase or password into any website.</footer>
+</div>
+
+<script>
+'use strict';
+// Real canonical Wrapped MON on Monad Testnet (chain 10143). Same address as MonaSurf's KnownToken.wmon.
+const WMON = '0xfb8bf4c1cc7a94c73d209a149ea2abea852bc541';
+// Inert stand-in spender: the burn address, which no one holds a key for.
+const DEMO_SPENDER = '0x000000000000000000000000000000000000dead';
+const APPROVE = '0x095ea7b3';
+const MAX_UINT = 'f'.repeat(64);
+const FIVE_WMON = '4563918244f40000'; // 5 * 10^18
+let account = null;
+
+const $ = (id) => document.getElementById(id);
+const pad = (hex) => hex.replace(/^0x/, '').toLowerCase().padStart(64, '0');
+const short = (a) => a ? a.slice(0, 6) + '…' + a.slice(-4) : '';
+function log(msg) {
+  const l = $('log');
+  if (l.dataset.fresh !== '1') { l.textContent = ''; l.dataset.fresh = '1'; }
+  l.textContent = new Date().toLocaleTimeString() + '  ' + msg + '\n' + l.textContent;
+}
+async function rpc(method, params) {
+  if (!window.ethereum) throw Object.assign(new Error('No wallet provider. Open this page inside MonaSurf.'), { code: -1 });
+  return window.ethereum.request({ method, params });
+}
+function setAccount(a) {
+  account = a || null;
+  $('connect').textContent = account ? short(account) : 'Connect wallet';
+  for (const id of ['cClaim', 'cLimited', 'cInspect', 'cRevoke']) $(id).disabled = !account;
+}
+async function connect() {
+  try { const a = await rpc('eth_requestAccounts', []); setAccount(a[0]); log('Connected ' + a[0]); }
+  catch (e) { log('Connect refused [' + e.code + '] ' + e.message); }
+}
+async function nonce() { return parseInt(await rpc('eth_getTransactionCount', [account, 'latest']), 16); }
+
+async function requestApproval(kind) {
+  if (!account) { await connect(); if (!account) return; }
+  const unlimited = kind === 'unlimited';
+  const data = APPROVE + pad(DEMO_SPENDER) + (unlimited ? MAX_UINT : pad(FIVE_WMON));
+  const label = unlimited ? 'Unlimited WMON approval (MAX uint256) to ' + short(DEMO_SPENDER) : 'Approval of 5 WMON to ' + short(DEMO_SPENDER);
+  $('result').classList.remove('show');
+  let before = null;
+  try { before = await nonce(); } catch (e) { log('Could not read nonce before the request: ' + e.message); }
+  log((unlimited ? 'Claim Rewards' : 'Limited Approval') + ' → eth_sendTransaction to WMON ' + WMON + ', data ' + data.slice(0, 18) + '…');
+  let hash = null, err = null;
+  try { hash = await rpc('eth_sendTransaction', [{ from: account, to: WMON, value: '0x0', data }]); }
+  catch (e) { err = e; }
+  let after = null;
+  try { after = await nonce(); } catch (e) { log('Could not read nonce after the request: ' + e.message); }
+  const nonceText = (before !== null && after !== null) ? ' (wallet nonce ' + before + ' → ' + after + ', read via eth_getTransactionCount)' : ' (nonce could not be read)';
+
+  $('rAction').textContent = label;
+  $('rRisk').innerHTML = unlimited ? '<span class="bad">High</span> (deterministic rule for unlimited approvals)'
+                                   : 'Bounded approval: no unlimited-allowance warning';
+  $('warn').style.display = unlimited ? 'block' : 'none';
+  if (err && err.code === 4001) {
+    $('resultTitle').textContent = unlimited ? 'Protected by Mona Guard' : 'Request rejected';
+    $('rDecision').innerHTML = '<span class="good">Rejected</span> (EIP-1193 error 4001: ' + err.message + ')';
+    const unchanged = before !== null && after !== null && after === before;
+    $('rBroadcast').innerHTML = unchanged ? '<span class="good">No</span>' + nonceText : 'No hash returned' + nonceText;
+    log('Rejected [4001] ' + err.message + nonceText);
+  } else if (err) {
+    $('resultTitle').textContent = 'Request not completed';
+    $('rDecision').textContent = 'Error ' + err.code + ': ' + err.message;
+    $('rBroadcast').textContent = 'No hash returned' + nonceText;
+    log('Error [' + err.code + '] ' + err.message);
+  } else {
+    $('resultTitle').textContent = 'You approved this request';
+    $('rDecision').innerHTML = '<span class="bad">Approved and signed</span>';
+    $('rBroadcast').innerHTML = '<span class="bad">Yes</span>: ' + hash + nonceText;
+    log('Broadcast ' + hash);
+  }
+  $('result').classList.add('show');
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function inspect() {
+  try {
+    const [chain, bal, n, wmonBal, allowance] = await Promise.all([
+      rpc('eth_chainId', []), rpc('eth_getBalance', [account, 'latest']), nonce(),
+      rpc('eth_call', [{ to: WMON, data: '0x70a08231' + pad(account) }, 'latest']),
+      rpc('eth_call', [{ to: WMON, data: '0xdd62ed3e' + pad(account) + pad(DEMO_SPENDER) }, 'latest'])]);
+    const fmt = (hex) => { const v = BigInt(hex); const w = v / 10n ** 18n, f = (v % 10n ** 18n).toString().padStart(18, '0').slice(0, 4); return w + '.' + f; };
+    const al = BigInt(allowance) === (2n ** 256n - 1n) ? 'MAX (unlimited)' : fmt(allowance) + ' WMON';
+    log('Wallet ' + account + '\nchain ' + parseInt(chain, 16) + ' · nonce ' + n + '\nMON ' + fmt(bal) + ' · WMON ' + fmt(wmonBal) +
+        '\nCurrent WMON allowance to demo spender ' + short(DEMO_SPENDER) + ': ' + al + '\n(read-only RPC through MonaSurf; nothing signed)');
+  } catch (e) { log('Inspect failed [' + e.code + '] ' + e.message); }
+}
+
+async function revoke() {
+  if (!account) { await connect(); if (!account) return; }
+  const data = APPROVE + pad(DEMO_SPENDER) + pad('0x0');
+  log('Revoke → eth_sendTransaction approve(' + short(DEMO_SPENDER) + ', 0) on WMON ' + WMON);
+  try {
+    const hash = await rpc('eth_sendTransaction', [{ from: account, to: WMON, value: '0x0', data }]);
+    log('Broadcast ' + hash + '. Waiting for the receipt…');
+    let receipt = null;
+    for (let i = 0; i < 30 && !receipt; i++) { await new Promise(r => setTimeout(r, 1000)); receipt = await rpc('eth_getTransactionReceipt', [hash]); }
+    const allowance = await rpc('eth_call', [{ to: WMON, data: '0xdd62ed3e' + pad(account) + pad(DEMO_SPENDER) }, 'latest']);
+    const zero = BigInt(allowance) === 0n;
+    log('Receipt status ' + (receipt ? receipt.status : 'not found yet') + '. allowance(owner, spender) now ' + (zero ? '0: revoked, verified on-chain' : BigInt(allowance).toString() + ': NOT revoked'));
+  } catch (e) { log('Revoke not sent [' + e.code + '] ' + e.message); }
+}
+
+function reset() {
+  $('result').classList.remove('show');
+  $('log').dataset.fresh = '1';
+  $('log').textContent = account ? 'Page reset. Still connected as ' + account + '. Wallet and chain state unchanged.' : 'Page reset. Not connected.';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+$('connect').onclick = connect; $('cConnect').onclick = connect;
+$('claim').onclick = () => requestApproval('unlimited'); $('cClaim').onclick = () => requestApproval('unlimited');
+$('cLimited').onclick = () => requestApproval('limited');
+$('cInspect').onclick = inspect; $('cReset').onclick = reset; $('cRevoke').onclick = revoke;
+
+window.addEventListener('load', async () => {
+  setAccount(null);
+  if (!window.ethereum) { log('No wallet provider. Open this page inside MonaSurf.'); return; }
+  window.ethereum.on('accountsChanged', (a) => setAccount(a[0]));
+  try { $('chain').textContent = 'chain ' + parseInt(await rpc('eth_chainId', []), 16); } catch (e) { $('chain').textContent = 'chain unknown'; }
+  try { const a = await rpc('eth_accounts', []); setAccount(a[0]); if (a[0]) log('Already connected as ' + a[0]); } catch (e) {}
+});
+</script>
+</body>
+</html>
